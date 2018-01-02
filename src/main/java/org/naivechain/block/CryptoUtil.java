@@ -25,8 +25,8 @@ public class CryptoUtil {
     private static String byte2Hex(byte[] bytes) {
         StringBuilder builder = new StringBuilder();
         String temp;
-        for (int i = 0; i < bytes.length; i++) {
-            temp = Integer.toHexString(bytes[i] & 0xFF);
+        for (byte aByte : bytes) {
+            temp = Integer.toHexString(aByte & 0xFF);
             if (temp.length() == 1) {
                 builder.append("0");
             }

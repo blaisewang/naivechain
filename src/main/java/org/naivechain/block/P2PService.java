@@ -20,12 +20,12 @@ import java.util.List;
  */
 public class P2PService {
     private List<WebSocket> sockets;
-    private BlockService    blockService;
-    private final static int QUERY_LATEST        = 0;
-    private final static int QUERY_ALL           = 1;
+    private BlockService blockService;
+    private final static int QUERY_LATEST = 0;
+    private final static int QUERY_ALL = 1;
     private final static int RESPONSE_BLOCKCHAIN = 2;
 
-    public P2PService(BlockService blockService) {
+    P2PService(BlockService blockService) {
         this.blockService = blockService;
         this.sockets = new ArrayList<WebSocket>();
     }
@@ -38,7 +38,7 @@ public class P2PService {
             }
 
             public void onClose(WebSocket webSocket, int i, String s, boolean b) {
-                System.out.println("connection failed to peer:" + webSocket.getRemoteSocketAddress());
+                System.out.println("Connection failed to peer:" + webSocket.getRemoteSocketAddress());
                 sockets.remove(webSocket);
             }
 
@@ -47,7 +47,7 @@ public class P2PService {
             }
 
             public void onError(WebSocket webSocket, Exception e) {
-                System.out.println("connection failed to peer:" + webSocket.getRemoteSocketAddress());
+                System.out.println("Connection failed to peer:" + webSocket.getRemoteSocketAddress());
                 sockets.remove(webSocket);
             }
 
@@ -56,13 +56,13 @@ public class P2PService {
             }
         };
         socket.start();
-        System.out.println("listening websocket p2p port on: " + port);
+        System.out.println("Listening WebSocket P2P Port on: " + port);
     }
 
-    private void handleMessage(WebSocket webSocket, String s) {
+    private void handleMessage(WebSocket webSocket, String string) {
         try {
-            Message message = JSON.parseObject(s, Message.class);
-            System.out.println("Received message" + JSON.toJSONString(message));
+            Message message = JSON.parseObject(string, Message.class);
+            System.out.println("Received message" + JSON.toJSONString(message, true));
             switch (message.getType()) {
                 case QUERY_LATEST:
                     write(webSocket, responseLatestMsg());
@@ -75,33 +75,33 @@ public class P2PService {
                     break;
             }
         } catch (Exception e) {
-            System.out.println("hanle message is error:" + e.getMessage());
+            System.out.println("Handle message error:" + e.getMessage());
         }
     }
 
     private void handleBlockChainResponse(String message) {
-        List<Block> receiveBlocks = JSON.parseArray(message, Block.class);
-        Collections.sort(receiveBlocks, new Comparator<Block>() {
+        List<Block> receivedBlocks = JSON.parseArray(message, Block.class);
+        Collections.sort(receivedBlocks, new Comparator<Block>() {
             public int compare(Block o1, Block o2) {
-                return o1.getIndex() - o1.getIndex();
+                return o1.getIndex() - o2.getIndex();
             }
         });
 
-        Block latestBlockReceived = receiveBlocks.get(receiveBlocks.size() - 1);
+        Block latestBlockReceived = receivedBlocks.get(receivedBlocks.size() - 1);
         Block latestBlock = blockService.getLatestBlock();
         if (latestBlockReceived.getIndex() > latestBlock.getIndex()) {
             if (latestBlock.getHash().equals(latestBlockReceived.getPreviousHash())) {
                 System.out.println("We can append the received block to our chain");
                 blockService.addBlock(latestBlockReceived);
-                broatcast(responseLatestMsg());
-            } else if (receiveBlocks.size() == 1) {
+                broadcast(responseLatestMsg());
+            } else if (receivedBlocks.size() == 1) {
                 System.out.println("We have to query the chain from our peer");
-                broatcast(queryAllMsg());
+                broadcast(queryAllMsg());
             } else {
-                blockService.replaceChain(receiveBlocks);
+                blockService.replaceChain(receivedBlocks);
             }
         } else {
-            System.out.println("received blockchain is not longer than received blockchain. Do nothing");
+            System.out.println("Received blockchain is not longer than current blockchain. Do nothing");
         }
     }
 
@@ -121,19 +121,19 @@ public class P2PService {
 
                 @Override
                 public void onClose(int i, String s, boolean b) {
-                    System.out.println("connection failed");
+                    System.out.println("Connection failed");
                     sockets.remove(this);
                 }
 
                 @Override
                 public void onError(Exception e) {
-                    System.out.println("connection failed");
+                    System.out.println("Connection failed");
                     sockets.remove(this);
                 }
             };
             socket.connect();
         } catch (URISyntaxException e) {
-            System.out.println("p2p connect is error:" + e.getMessage());
+            System.out.println("P2P connection error:" + e.getMessage());
         }
     }
 
@@ -141,27 +141,27 @@ public class P2PService {
         ws.send(message);
     }
 
-    public void broatcast(String message) {
+    public void broadcast(String message) {
         for (WebSocket socket : sockets) {
             this.write(socket, message);
         }
     }
 
     private String queryAllMsg() {
-        return JSON.toJSONString(new Message(QUERY_ALL));
+        return JSON.toJSONString(new Message(QUERY_ALL), true);
     }
 
     private String queryChainLengthMsg() {
-        return JSON.toJSONString(new Message(QUERY_LATEST));
+        return JSON.toJSONString(new Message(QUERY_LATEST), true);
     }
 
     private String responseChainMsg() {
-        return JSON.toJSONString(new Message(RESPONSE_BLOCKCHAIN, JSON.toJSONString(blockService.getBlockChain())));
+        return JSON.toJSONString(new Message(RESPONSE_BLOCKCHAIN, JSON.toJSONString(blockService.getBlockChain(), true)));
     }
 
     public String responseLatestMsg() {
         Block[] blocks = {blockService.getLatestBlock()};
-        return JSON.toJSONString(new Message(RESPONSE_BLOCKCHAIN, JSON.toJSONString(blocks)));
+        return JSON.toJSONString(new Message(RESPONSE_BLOCKCHAIN, JSON.toJSONString(blocks, true)));
     }
 
     public List<WebSocket> getSockets() {

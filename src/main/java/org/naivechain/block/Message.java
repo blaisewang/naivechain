@@ -12,11 +12,11 @@ public class Message implements Serializable{
     public Message() {
     }
 
-    public Message(int type) {
+    Message(int type) {
         this.type = type;
     }
 
-    public Message(int type, String data) {
+    Message(int type, String data) {
         this.type = type;
         this.data = data;
     }

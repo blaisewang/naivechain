@@ -4,21 +4,21 @@ package org.naivechain.block;
  * Created by sunysen on 2017/7/6.
  */
 public class Block {
-    private int    index;
+    private int index;
     private String previousHash;
-    private long   timestamp;
+    private long timestamp;
     private String data;
     private String hash;
 
     public Block() {
     }
 
-    public Block(int index, String previousHash, long timestamp, String data, String hash) {
+    Block(int index, long timestamp, String data, String hash, String previousHash) {
         this.index = index;
-        this.previousHash = previousHash;
         this.timestamp = timestamp;
         this.data = data;
         this.hash = hash;
+        this.previousHash = previousHash;
     }
 
     public int getIndex() {

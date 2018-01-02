@@ -6,7 +6,6 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.java_websocket.WebSocket;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -18,9 +17,9 @@ import java.net.InetSocketAddress;
  */
 public class HTTPService {
     private BlockService blockService;
-    private P2PService   p2pService;
+    private P2PService p2pService;
 
-    public HTTPService(BlockService blockService, P2PService p2pService) {
+    HTTPService(BlockService blockService, P2PService p2pService) {
         this.blockService = blockService;
         this.p2pService = p2pService;
     }
@@ -28,7 +27,7 @@ public class HTTPService {
     public void initHTTPServer(int port) {
         try {
             Server server = new Server(port);
-            System.out.println("listening http port on: " + port);
+            System.out.println("Listening HTTP Port on: " + port);
             ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
             context.setContextPath("/");
             server.setHandler(context);
@@ -39,42 +38,43 @@ public class HTTPService {
             server.start();
             server.join();
         } catch (Exception e) {
-            System.out.println("init http server is error:" + e.getMessage());
+            System.out.println("Initialization of HTTP Server error:" + e.getMessage());
         }
     }
 
     private class BlocksServlet extends HttpServlet {
         @Override
-        protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
             resp.setCharacterEncoding("UTF-8");
-            resp.getWriter().println(JSON.toJSONString(blockService.getBlockChain()));
+            resp.getWriter().println(JSON.toJSONString(blockService.getBlockChain(), true) + "\n");
         }
     }
 
 
     private class AddPeerServlet extends HttpServlet {
         @Override
-        protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
             this.doPost(req, resp);
         }
 
         @Override
-        protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
             resp.setCharacterEncoding("UTF-8");
-            String peer = req.getParameter("peer");
+            String peer = req.getParameterMap().get("peer")[0];
+            System.out.println("111" + peer);
             p2pService.connectToPeer(peer);
-            resp.getWriter().print("ok");
+            resp.getWriter().print("Ok\n");
         }
     }
 
 
     private class PeersServlet extends HttpServlet {
         @Override
-        protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
             resp.setCharacterEncoding("UTF-8");
             for (WebSocket socket : p2pService.getSockets()) {
                 InetSocketAddress remoteSocketAddress = socket.getRemoteSocketAddress();
-                resp.getWriter().print(remoteSocketAddress.getHostName() + ":" + remoteSocketAddress.getPort());
+                resp.getWriter().print(remoteSocketAddress.getHostName() + ":" + remoteSocketAddress.getPort() + "\n");
             }
         }
     }
@@ -82,20 +82,20 @@ public class HTTPService {
 
     private class MineBlockServlet extends HttpServlet {
         @Override
-        protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
             this.doPost(req, resp);
         }
 
         @Override
-        protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
             resp.setCharacterEncoding("UTF-8");
-            String data = req.getParameter("data");
+            String data = req.getParameterMap().get("data")[0];
             Block newBlock = blockService.generateNextBlock(data);
             blockService.addBlock(newBlock);
-            p2pService.broatcast(p2pService.responseLatestMsg());
-            String s = JSON.toJSONString(newBlock);
-            System.out.println("block added: " + s);
-            resp.getWriter().print(s);
+            p2pService.broadcast(p2pService.responseLatestMsg());
+            String string = JSON.toJSONString(newBlock, true);
+            System.out.println("Block added: " + string + "\n");
+            resp.getWriter().print(string + "\n");
         }
     }
 }
