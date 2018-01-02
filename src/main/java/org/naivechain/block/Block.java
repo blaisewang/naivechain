@@ -1,14 +1,21 @@
 package org.naivechain.block;
 
+import com.alibaba.fastjson.annotation.JSONField;
+
 /**
  * Created by sunysen on 2017/7/6.
  */
 public class Block {
+    @JSONField(ordinal = 1)
     private int index;
-    private String previousHash;
+    @JSONField(ordinal = 2)
     private long timestamp;
+    @JSONField(ordinal = 3)
     private String data;
+    @JSONField(ordinal = 4)
     private String hash;
+    @JSONField(ordinal = 5)
+    private String previousHash;
 
     public Block() {
     }
