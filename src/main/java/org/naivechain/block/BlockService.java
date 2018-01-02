@@ -10,7 +10,7 @@ public class BlockService {
     private List<Block> blockChain;
 
     BlockService() {
-        this.blockChain = new ArrayList<Block>();
+        this.blockChain = new ArrayList<>();
         blockChain.add(this.getFirstBlock());
     }
 

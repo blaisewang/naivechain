@@ -11,7 +11,6 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -27,7 +26,7 @@ public class P2PService {
 
     P2PService(BlockService blockService) {
         this.blockService = blockService;
-        this.sockets = new ArrayList<WebSocket>();
+        this.sockets = new ArrayList<>();
     }
 
     public void initP2PServer(int port) {
@@ -81,11 +80,7 @@ public class P2PService {
 
     private void handleBlockChainResponse(String message) {
         List<Block> receivedBlocks = JSON.parseArray(message, Block.class);
-        Collections.sort(receivedBlocks, new Comparator<Block>() {
-            public int compare(Block o1, Block o2) {
-                return o1.getIndex() - o2.getIndex();
-            }
-        });
+        receivedBlocks.sort(Comparator.comparingInt(Block::getIndex));
 
         Block latestBlockReceived = receivedBlocks.get(receivedBlocks.size() - 1);
         Block latestBlock = blockService.getLatestBlock();
