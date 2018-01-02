@@ -17,10 +17,12 @@ import java.net.InetSocketAddress;
  */
 public class HTTPService {
     private BlockService blockService;
+    private UserService userService;
     private P2PService p2pService;
 
-    HTTPService(BlockService blockService, P2PService p2pService) {
+    HTTPService(BlockService blockService, UserService userService, P2PService p2pService) {
         this.blockService = blockService;
+        this.userService = userService;
         this.p2pService = p2pService;
     }
 
@@ -35,6 +37,8 @@ public class HTTPService {
             context.addServlet(new ServletHolder(new MineBlockServlet()), "/mineBlock");
             context.addServlet(new ServletHolder(new PeersServlet()), "/peers");
             context.addServlet(new ServletHolder(new AddPeerServlet()), "/addPeer");
+            context.addServlet(new ServletHolder(new UserServlet()), "/users");
+            context.addServlet(new ServletHolder(new AddUserServlet()), "/addUser");
             server.start();
             server.join();
         } catch (Exception e) {
@@ -61,14 +65,38 @@ public class HTTPService {
         protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
             resp.setCharacterEncoding("UTF-8");
             String peer = req.getParameterMap().get("peer")[0];
-            System.out.println("111" + peer);
             p2pService.connectToPeer(peer);
-            resp.getWriter().print("Ok\n");
+            resp.getWriter().print("Added a new peer\n");
         }
     }
 
 
     private class PeersServlet extends HttpServlet {
+        @Override
+        protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+            resp.setCharacterEncoding("UTF-8");
+            resp.getWriter().println(JSON.toJSONString(userService.getUserList(), true) + "\n");
+        }
+    }
+
+
+    private class AddUserServlet extends HttpServlet {
+        @Override
+        protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+            this.doPost(req, resp);
+        }
+
+        @Override
+        protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+            resp.setCharacterEncoding("UTF-8");
+            String peer = req.getParameterMap().get("peer")[0];
+            userService.registerUser(peer);
+            resp.getWriter().print("Registered a new user for");
+        }
+    }
+
+
+    private class UserServlet extends HttpServlet {
         @Override
         protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
             resp.setCharacterEncoding("UTF-8");
@@ -99,4 +127,3 @@ public class HTTPService {
         }
     }
 }
-

@@ -16,6 +16,8 @@ public class Block {
     private String hash;
     @JSONField(ordinal = 5)
     private String previousHash;
+    @JSONField(ordinal = 6)
+    private User owner;
 
     public Block() {
     }
@@ -36,13 +38,6 @@ public class Block {
         this.index = index;
     }
 
-    public String getPreviousHash() {
-        return previousHash;
-    }
-
-    public void setPreviousHash(String previousHash) {
-        this.previousHash = previousHash;
-    }
 
     public long getTimestamp() {
         return timestamp;
@@ -67,5 +62,20 @@ public class Block {
     public void setHash(String hash) {
         this.hash = hash;
     }
-}
 
+    public String getPreviousHash() {
+        return previousHash;
+    }
+
+    public void setPreviousHash(String previousHash) {
+        this.previousHash = previousHash;
+    }
+
+    public User getOwner() {
+        return owner;
+    }
+
+    public void setOwner(User owner) {
+        this.owner = owner;
+    }
+}

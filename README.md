@@ -36,3 +36,15 @@ java -jar naivechain.jar 8081 7002 ws://localhost:7001
   ```
   curl http://localhost:8080/peers
   ```
+  
+- add User
+
+  ```
+  curl -H "application/x-www-form-urlencoded" -d "peer=ws://localhost:7001" http://localhost:8080/addUser
+  ```
+
+- query peers
+
+  ```
+  curl http://localhost:8080/users
+  ```

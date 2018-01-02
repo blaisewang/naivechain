@@ -14,8 +14,8 @@ public class BlockService {
         blockChain.add(this.getFirstBlock());
     }
 
-    private String calculateHash(String previousHash, long timestamp, String data) {
-        return CryptoUtil.getSHA256(previousHash + timestamp + data);
+    private String calculateHash(int index, long timestamp, String data, String previousHash) {
+        return CryptoUtil.getSHA256(index + timestamp + data + previousHash);
     }
 
     public Block getLatestBlock() {
@@ -23,14 +23,19 @@ public class BlockService {
     }
 
     private Block getFirstBlock() {
-        return new Block(1, System.currentTimeMillis(), "Hello Block", "aa212344fc10ea0a2cb885078fa9bc2354e55efc81be8f56b66e4a837157662e", "0");
+        int index = 0;
+        long timestamp = System.currentTimeMillis();
+        String data = "genesis-block";
+        String previousHash = "0";
+        String hash = calculateHash(index, timestamp, data, previousHash);
+        return new Block(index, timestamp, data, hash, previousHash);
     }
 
     public Block generateNextBlock(String blockData) {
         Block previousBlock = this.getLatestBlock();
         int nextIndex = previousBlock.getIndex() + 1;
         long nextTimestamp = System.currentTimeMillis();
-        String nextHash = calculateHash(previousBlock.getHash(), nextTimestamp, blockData);
+        String nextHash = calculateHash(nextIndex, nextTimestamp, blockData, previousBlock.getHash());
         return new Block(nextIndex, nextTimestamp, blockData, nextHash, previousBlock.getHash());
     }
 
@@ -48,7 +53,7 @@ public class BlockService {
             System.out.println("Invalid previous hash");
             return false;
         } else {
-            String hash = calculateHash(newBlock.getPreviousHash(), newBlock.getTimestamp(), newBlock.getData());
+            String hash = calculateHash(newBlock.getIndex(), newBlock.getTimestamp(), newBlock.getData(), newBlock.getPreviousHash());
             if (!hash.equals(newBlock.getHash())) {
                 System.out.println("Invalid hash: " + hash + " " + newBlock.getHash());
                 return false;

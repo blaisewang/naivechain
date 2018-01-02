@@ -10,12 +10,14 @@ public class Main {
                 int httpPort = Integer.valueOf(args[0]);
                 int p2pPort = Integer.valueOf(args[1]);
                 BlockService blockService = new BlockService();
+                UserService userService = new UserService();
                 P2PService p2pService = new P2PService(blockService);
                 p2pService.initP2PServer(p2pPort);
                 if (args.length == 3 && args[2] != null) {
                     p2pService.connectToPeer(args[2]);
+                    userService.addFirstUser(args[2]);
                 }
-                HTTPService httpService = new HTTPService(blockService, p2pService);
+                HTTPService httpService = new HTTPService(blockService, userService, p2pService);
                 httpService.initHTTPServer(httpPort);
             } catch (Exception e) {
                 System.out.println("startup is error:" + e.getMessage());
