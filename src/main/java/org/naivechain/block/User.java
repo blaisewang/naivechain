@@ -21,6 +21,12 @@ public class User {
         this.address = address;
     }
 
+    User(String user) {
+        String[] strings = user.split(":");
+        this.node = Integer.parseInt(strings[0]);
+        this.address = Integer.parseInt(strings[1]);
+    }
+
     public int getNode() {
         return node;
     }
@@ -35,5 +41,14 @@ public class User {
 
     public void setAddress(int address) {
         this.address = address;
+    }
+
+    public boolean equals(User user) {
+        return node == user.getNode() && address == user.getAddress();
+    }
+
+    @Override
+    public String toString() {
+        return node + ":" + address;
     }
 }

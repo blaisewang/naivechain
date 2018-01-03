@@ -58,6 +58,6 @@ java -jar naivechain.jar 3031 4002 ws://localhost:4001
 - query transaction
 
   ```
-  curl http://localhost:3030/transactions
+  curl http://localhost:3030/transaction
   ```
  

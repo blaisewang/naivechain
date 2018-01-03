@@ -2,6 +2,8 @@ package org.naivechain.block;
 
 import com.alibaba.fastjson.annotation.JSONField;
 
+import java.util.List;
+
 /**
  * Created by sunysen on 2017/7/6.
  */
@@ -11,25 +13,22 @@ public class Block {
     @JSONField(ordinal = 2)
     private long timestamp;
     @JSONField(ordinal = 3)
-    private String data;
+    private List<Transaction> transactions;
     @JSONField(ordinal = 4)
     private String hash;
     @JSONField(ordinal = 5)
     private String previousHash;
-    @JSONField(ordinal = 6)
-    private User owner;
 
 
     Block() {
     }
 
-    Block(int index, long timestamp, String data, String hash, String previousHash, User owner) {
+    Block(int index, long timestamp, List<Transaction> transactions, String hash, String previousHash) {
         this.index = index;
         this.timestamp = timestamp;
-        this.data = data;
+        this.transactions = transactions;
         this.hash = hash;
         this.previousHash = previousHash;
-        this.owner = owner;
     }
 
     public int getIndex() {
@@ -49,12 +48,12 @@ public class Block {
         this.timestamp = timestamp;
     }
 
-    public String getData() {
-        return data;
+    public List<Transaction> getTransactions() {
+        return transactions;
     }
 
-    public void setData(String data) {
-        this.data = data;
+    public void setTransactions(List<Transaction> transactions) {
+        this.transactions = transactions;
     }
 
     public String getHash() {
@@ -71,13 +70,5 @@ public class Block {
 
     public void setPreviousHash(String previousHash) {
         this.previousHash = previousHash;
-    }
-
-    public User getOwner() {
-        return owner;
-    }
-
-    public void setOwner(User owner) {
-        this.owner = owner;
     }
 }

@@ -11,7 +11,7 @@ public class UserService {
     private List<User> userList;
 
     UserService() {
-        this.userList = new ArrayList<>();
+        userList = new ArrayList<>();
     }
 
     public void registerUser(int node) {
@@ -21,7 +21,7 @@ public class UserService {
 
     public boolean isValIdUser(User user) {
         for (User aUser : userList) {
-            if (aUser.getNode() == user.getNode() && aUser.getAddress() == user.getAddress()) {
+            if (aUser.equals(user)) {
                 return true;
             }
         }

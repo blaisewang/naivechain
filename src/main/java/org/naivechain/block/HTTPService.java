@@ -15,22 +15,32 @@ import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by sunysen on 2017/7/6.
  */
 public class HTTPService {
+    private int mainHost;
     private BlockService blockService;
     private UserService userService;
     private P2PService p2pService;
+    private List<Transaction> transactions;
 
-    HTTPService(BlockService blockService, UserService userService, P2PService p2pService) {
+
+    HTTPService() {
+    }
+
+    HTTPService(int mainHost, BlockService blockService, UserService userService, P2PService p2pService) {
+        this.mainHost = mainHost;
         this.blockService = blockService;
         this.userService = userService;
         this.p2pService = p2pService;
+        transactions = new ArrayList<>();
     }
 
-    public void initHTTPServer(int port) {
+    public void initialHTTPServer(int port) {
         try {
             Server server = new Server(port);
             System.out.println("Listening HTTP Port on: " + port);
@@ -44,7 +54,9 @@ public class HTTPService {
             context.addServlet(new ServletHolder(new UsersServlet()), "/users");
             context.addServlet(new ServletHolder(new AddUserServlet()), "/addUser");
             context.addServlet(new ServletHolder(new TransferServlet()), "/transfer");
-            context.addServlet(new ServletHolder(new ReceiveServlet()), "/receive");
+            context.addServlet(new ServletHolder(new TransactionServlet()), "/transaction");
+            context.addServlet(new ServletHolder(new QueryPayeeServlet()), "/queryPayee");
+            context.addServlet(new ServletHolder(new AddTransactionServlet()), "/addTransaction");
             server.start();
             server.join();
         } catch (Exception e) {
@@ -70,9 +82,9 @@ public class HTTPService {
         @Override
         protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
             resp.setCharacterEncoding("UTF-8");
-            User user = new User(req.getLocalPort(), Integer.parseInt(req.getParameter("user")));
+            User user = new User(req.getLocalPort(), Integer.parseInt(req.getParameter("miner")));
             if (userService.isValIdUser(user)) {
-                Block newBlock = blockService.generateNextBlock(user);
+                Block newBlock = blockService.generateNextBlock(transactions);
                 blockService.addBlock(newBlock);
                 p2pService.broadcast(p2pService.responseLatestMsg());
                 String string = JSON.toJSONString(newBlock, true);
@@ -144,38 +156,64 @@ public class HTTPService {
         @Override
         protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
             resp.setCharacterEncoding("UTF-8");
-            try {
-                int userAddress = Integer.parseInt(req.getParameter("user"));
-                User user = new User(req.getLocalPort(), userAddress);
-                if (userService.isValIdUser(user)) {
-                    String hash = blockService.getMoneyHash(user);
-                    if (!hash.equals("0")) {
-                        int node = Integer.parseInt(req.getParameter("node"));
-                        int transferAddress = Integer.parseInt(req.getParameter("address"));
-                        String result = sendGet("http://localhost:" + node + "/receive", "address=" + transferAddress + "&hash=" + hash);
-                        resp.getWriter().println(result);
+            int address = Integer.parseInt(req.getParameter("user"));
+            User payer = new User(req.getLocalPort(), address);
+            if (userService.isValIdUser(payer)) {
+                User payee = new User(req.getParameter("payee"));
+                int amount = Integer.parseInt(req.getParameter("amount"));
+                String result = sendGet("http://localhost:" + payee.getNode() + "/queryPayee", "address=" + payee.getAddress());
+                if (result.equals("1")) {
+                    result = sendGet("http://localhost:" + mainHost + "/addTransaction", "payer=" + payer.toString() + "&payee=" + payee.toString() + "&amount=" + amount);
+                    if (result.equals("1")) {
+                        resp.getWriter().println("Waiting for authorization");
                     } else {
-                        resp.getWriter().println("Insufficient balance");
+                        resp.getWriter().println("Main host error");
                     }
                 } else {
-                    resp.getWriter().println("Illegal user");
+                    resp.getWriter().println("Illegal payee");
                 }
-            } catch (Exception e) {
-                resp.getWriter().println("Illegal parameter(s)" + e.getMessage());
+            } else {
+                resp.getWriter().println("Illegal payer");
             }
         }
     }
 
-    private class ReceiveServlet extends HttpServlet {
+    private class TransactionServlet extends HttpServlet {
+        @Override
+        protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+            if (req.getLocalPort() == mainHost) {
+                resp.setCharacterEncoding("UTF-8");
+                resp.getWriter().println(JSON.toJSONString(transactions, true));
+            }
+        }
+    }
+
+    private class QueryPayeeServlet extends HttpServlet {
         @Override
         protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
             resp.setCharacterEncoding("UTF-8");
-            User user = new User(req.getLocalPort(), Integer.parseInt(req.getParameter("address")));
-            if (userService.isValIdUser(user)) {
-                String hash = req.getParameter("hash");
-                blockService.setMoneyOwner(user, hash);
+            User payee = new User(req.getLocalPort(), Integer.parseInt(req.getParameter("address")));
+            if (userService.isValIdUser(payee)) {
+                resp.getWriter().println("1");
             } else {
-                resp.getWriter().println("Nonexistent payee");
+                resp.getWriter().println("0");
+            }
+        }
+    }
+
+    private class AddTransactionServlet extends HttpServlet {
+        @Override
+        protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+            if (req.getLocalPort() == mainHost) {
+                resp.setCharacterEncoding("UTF-8");
+                String payer = req.getParameter("payer");
+                String payee = req.getParameter("payee");
+                int amount = Integer.parseInt(req.getParameter("amount"));
+                System.out.println(payer + payee + amount);
+                transactions.add(new Transaction(payer, payee, amount));
+                resp.getWriter().println("1");
+            } else {
+                resp.getWriter().println("0");
             }
         }
     }
