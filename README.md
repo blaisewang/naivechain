@@ -16,7 +16,7 @@ java -jar naivechain.jar 3031 4002 ws://localhost:4001
 - mine block
 
   ```
-  curl http://localhost:3030/mineBlock?user=0
+  curl -d "user=0" http://localhost:3030/mineBlock
   ```
 
 - query blocks
@@ -28,7 +28,7 @@ java -jar naivechain.jar 3031 4002 ws://localhost:4001
 - add peer
 
   ```
-  curl http://localhost:3030/addPeer?node=ws://localhost:4001
+  curl -d "node=ws://localhost:4001" http://localhost:3030/addPeer
   ```
 
 - query peers
@@ -52,5 +52,5 @@ java -jar naivechain.jar 3031 4002 ws://localhost:4001
 - transfer money
 
   ```
-  curl http://localhost:3030/transfer?user=0&node=3031&address=0
+  curl -d "user=0&node=3031&address=0" http://localhost:3030/transfer
   ```
