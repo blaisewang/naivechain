@@ -22,13 +22,13 @@ java -jar naivechain.jar 8081 7002 ws://localhost:7001
 - mine block
 
   ```
-  curl -H "application/x-www-form-urlencoded" -d "data=Some data to the first block" http://localhost:8080/mineBlock
+  curl http://localhost:8080/mineBlock?data=some_data
   ```
 
-- add peer
+- add node
 
   ```
-  curl -H "application/x-www-form-urlencoded" -d "peer=ws://localhost:7001" http://localhost:8080/addPeer
+  curl http://localhost:8080/addPeer?node=ws://localhost:7001
   ```
 
 - query peers
@@ -37,14 +37,20 @@ java -jar naivechain.jar 8081 7002 ws://localhost:7001
   curl http://localhost:8080/peers
   ```
   
-- add User
+- add user
 
   ```
-  curl -H "application/x-www-form-urlencoded" -d "peer=ws://localhost:7001" http://localhost:8080/addUser
+  curl http://localhost:8080/addUser
   ```
 
-- query peers
+- query users
 
   ```
   curl http://localhost:8080/users
+  ```
+  
+- transfer money
+
+  ```
+  curl http://localhost:{node}/transfer?user={user_address}&node={target_node}&address={target_address}
   ```
