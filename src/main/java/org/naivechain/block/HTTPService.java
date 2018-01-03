@@ -78,6 +78,8 @@ public class HTTPService {
                 String string = JSON.toJSONString(newBlock, true);
                 System.out.println("Block added: " + string);
                 resp.getWriter().println(string);
+            } else {
+                resp.getWriter().println("Illegal user");
             }
         }
     }
@@ -145,9 +147,7 @@ public class HTTPService {
             try {
                 int userAddress = Integer.parseInt(req.getParameter("user"));
                 User user = new User(req.getLocalPort(), userAddress);
-
                 if (userService.isValIdUser(user)) {
-
                     String hash = blockService.getMoneyHash(user);
                     if (!hash.equals("0")) {
                         int node = Integer.parseInt(req.getParameter("node"));
@@ -161,7 +161,7 @@ public class HTTPService {
                     resp.getWriter().println("Illegal user");
                 }
             } catch (Exception e) {
-                resp.getWriter().println("Illegal parameter(s)");
+                resp.getWriter().println("Illegal parameter(s)" + e.getMessage());
             }
         }
     }
@@ -174,14 +174,13 @@ public class HTTPService {
             if (userService.isValIdUser(user)) {
                 String hash = req.getParameter("hash");
                 blockService.setMoneyOwner(user, hash);
-                resp.getWriter().println(user.toString() + " | " + hash);
             } else {
                 resp.getWriter().println("Nonexistent payee");
             }
         }
     }
 
-    private static String sendGet(String url, String param) {
+    private static String sendGet(String url, String param) throws IOException {
         StringBuilder result = new StringBuilder();
         BufferedReader in = null;
         try {
@@ -197,14 +196,10 @@ public class HTTPService {
                 result.append(line);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            return "Server error";
         } finally {
-            try {
-                if (in != null) {
-                    in.close();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
+            if (in != null) {
+                in.close();
             }
         }
         return result.toString();

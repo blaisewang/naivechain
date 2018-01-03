@@ -28,7 +28,7 @@ java -jar naivechain.jar 3031 4002 ws://localhost:4001
 - add peer
 
   ```
-  curl -d "node=ws://localhost:4001" http://localhost:3030/addPeer
+  curl -d "peer=ws://localhost:4001" http://localhost:3030/addPeer
   ```
 
 - query peers

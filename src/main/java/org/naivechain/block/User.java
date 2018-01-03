@@ -13,6 +13,9 @@ public class User {
     private int address;
 
 
+    User() {
+    }
+
     User(int node, int address) {
         this.node = node;
         this.address = address;

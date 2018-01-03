@@ -90,7 +90,8 @@ public class BlockService {
 
     public String getMoneyHash(User user) {
         for (Block block : blockChain) {
-            if (block.getOwner().equals(user)) {
+            User owner = block.getOwner();
+            if (owner.getNode() == user.getNode() && owner.getAddress() == user.getAddress()) {
                 return block.getHash();
             }
         }

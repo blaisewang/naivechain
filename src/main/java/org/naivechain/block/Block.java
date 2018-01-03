@@ -20,6 +20,9 @@ public class Block {
     private User owner;
 
 
+    Block() {
+    }
+
     Block(int index, long timestamp, String data, String hash, String previousHash, User owner) {
         this.index = index;
         this.timestamp = timestamp;

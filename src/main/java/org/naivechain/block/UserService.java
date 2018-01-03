@@ -20,7 +20,12 @@ public class UserService {
 
 
     public boolean isValIdUser(User user) {
-        return userList.contains(user);
+        for (User aUser : userList) {
+            if (aUser.getNode() == user.getNode() && aUser.getAddress() == user.getAddress()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public List<User> getUserList() {
