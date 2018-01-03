@@ -24,19 +24,21 @@ public class BlockService {
 
     private Block getFirstBlock() {
         int index = 0;
-        long timestamp = System.currentTimeMillis();
+        long timestamp = 1514936633890L;
         String data = "genesis-block";
         String previousHash = "0";
         String hash = calculateHash(index, timestamp, data, previousHash);
-        return new Block(index, timestamp, data, hash, previousHash);
+        User owner = new User(3030, 0);
+        return new Block(index, timestamp, data, hash, previousHash, owner);
     }
 
-    public Block generateNextBlock(String blockData) {
+    public Block generateNextBlock(User owner) {
         Block previousBlock = this.getLatestBlock();
         int nextIndex = previousBlock.getIndex() + 1;
         long nextTimestamp = System.currentTimeMillis();
-        String nextHash = calculateHash(nextIndex, nextTimestamp, blockData, previousBlock.getHash());
-        return new Block(nextIndex, nextTimestamp, blockData, nextHash, previousBlock.getHash());
+        String data = "Some data";
+        String nextHash = calculateHash(nextIndex, nextTimestamp, data, previousBlock.getHash());
+        return new Block(nextIndex, nextTimestamp, data, nextHash, previousBlock.getHash(), owner);
     }
 
     public void addBlock(Block newBlock) {
@@ -84,6 +86,24 @@ public class BlockService {
             }
         }
         return true;
+    }
+
+    public String getMoneyHash(User user) {
+        for (Block block : blockChain) {
+            if (block.getOwner().equals(user)) {
+                return block.getHash();
+            }
+        }
+        return "0";
+    }
+
+    public void setMoneyOwner(User user, String hash) {
+        for (Block block : blockChain) {
+            if (block.getHash().equals(hash)) {
+                block.setOwner(user);
+                return;
+            }
+        }
     }
 
     public List<Block> getBlockChain() {

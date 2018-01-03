@@ -5,8 +5,8 @@ import java.io.Serializable;
 /**
  * Created by sunysen on 2017/7/4.
  */
-public class Message implements Serializable{
-    private int    type;
+public class Message implements Serializable {
+    private int type;
     private String data;
 
     public Message() {

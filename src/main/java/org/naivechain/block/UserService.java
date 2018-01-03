@@ -14,13 +14,13 @@ public class UserService {
         this.userList = new ArrayList<>();
     }
 
-    public void addFirstUser(String peer) {
-        userList.add(new User(peer, 0));
+    public void registerUser(int node) {
+        userList.add(new User(node, userList.size()));
     }
 
 
-    public void registerUser(String peer) {
-        userList.add(new User(peer, userList.size()));
+    public boolean isValIdUser(User user) {
+        return userList.contains(user);
     }
 
     public List<User> getUserList() {

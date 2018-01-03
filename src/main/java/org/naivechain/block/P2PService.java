@@ -132,8 +132,8 @@ public class P2PService {
         }
     }
 
-    private void write(WebSocket ws, String message) {
-        ws.send(message);
+    private void write(WebSocket webSocket, String message) {
+        webSocket.send(message);
     }
 
     public void broadcast(String message) {

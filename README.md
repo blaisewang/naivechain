@@ -6,8 +6,8 @@ Naivechain - a blockchain implementation in 200 lines of code.
 git clone https://github.com/blaisewang/naivechain.git
 cd naivechain
 mvn clean install
-java -jar naivechain.jar 8080 7001
-java -jar naivechain.jar 8081 7002 ws://localhost:7001
+java -jar naivechain.jar 3030 4001
+java -jar naivechain.jar 3031 4002 ws://localhost:4001
 ```
 
 
@@ -16,41 +16,41 @@ java -jar naivechain.jar 8081 7002 ws://localhost:7001
 - mine block
 
   ```
-  curl http://localhost:8080/mineBlock?data=some_data
+  curl http://localhost:3030/mineBlock?user=0
   ```
 
 - query blocks
 
   ```
-  curl http://localhost:8080/blocks
+  curl http://localhost:3030/blocks
   ```
 
 - add peer
 
   ```
-  curl http://localhost:8080/addPeer?node=ws://localhost:7001
+  curl http://localhost:3030/addPeer?node=ws://localhost:4001
   ```
 
 - query peers
 
   ```
-  curl http://localhost:8080/peers
+  curl http://localhost:3030/peers
   ```
   
 - add user
 
   ```
-  curl http://localhost:8080/addUser
+  curl http://localhost:3030/addUser
   ```
 
 - query users
 
   ```
-  curl http://localhost:8080/users
+  curl http://localhost:3030/users
   ```
   
 - transfer money
 
   ```
-  curl http://localhost:8080/transfer?user=1&node=8081&address=1
+  curl http://localhost:3030/transfer?user=0&node=3031&address=0
   ```

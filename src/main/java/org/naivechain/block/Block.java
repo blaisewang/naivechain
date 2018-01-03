@@ -19,15 +19,14 @@ public class Block {
     @JSONField(ordinal = 6)
     private User owner;
 
-    public Block() {
-    }
 
-    Block(int index, long timestamp, String data, String hash, String previousHash) {
+    Block(int index, long timestamp, String data, String hash, String previousHash, User owner) {
         this.index = index;
         this.timestamp = timestamp;
         this.data = data;
         this.hash = hash;
         this.previousHash = previousHash;
+        this.owner = owner;
     }
 
     public int getIndex() {

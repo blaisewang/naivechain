@@ -15,15 +15,16 @@ public class Main {
                 p2pService.initP2PServer(p2pPort);
                 if (args.length == 3 && args[2] != null) {
                     p2pService.connectToPeer(args[2]);
-                    userService.addFirstUser(args[2]);
+                } else if (args.length == 2 && args[0] != null) {
+                    userService.registerUser(httpPort);
                 }
                 HTTPService httpService = new HTTPService(blockService, userService, p2pService);
                 httpService.initHTTPServer(httpPort);
             } catch (Exception e) {
-                System.out.println("startup is error:" + e.getMessage());
+                System.out.println("Startup error:" + e.getMessage());
             }
         } else {
-            System.out.println("usage: java -jar naivechain.jar 8080 6001");
+            System.out.println("Usage: java -jar naivechain.jar 8080 6001");
         }
     }
 }

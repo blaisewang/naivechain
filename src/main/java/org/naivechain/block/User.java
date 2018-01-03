@@ -8,29 +8,29 @@ import com.alibaba.fastjson.annotation.JSONField;
  */
 public class User {
     @JSONField(ordinal = 1)
-    private String peer;
+    private int node;
     @JSONField(ordinal = 2)
     private int address;
 
 
-    User(String peer, int address) {
-        this.peer = peer;
+    User(int node, int address) {
+        this.node = node;
         this.address = address;
     }
 
-    public String getPeer() {
-        return peer;
+    public int getNode() {
+        return node;
     }
 
-    public void setPeer(String peer) {
-        this.peer = peer;
+    public void setNode(int node) {
+        this.node = node;
     }
 
     public int getAddress() {
         return address;
     }
 
-    public void setAddress(int index) {
-        this.address = index;
+    public void setAddress(int address) {
+        this.address = address;
     }
 }
