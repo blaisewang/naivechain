@@ -52,5 +52,5 @@ java -jar naivechain.jar 8081 7002 ws://localhost:7001
 - transfer money
 
   ```
-  curl http://localhost:{node}/transfer?user={user_address}&node={target_node}&address={target_address}
+  curl http://localhost:8080/transfer?user=1&node=8081&address=1
   ```
