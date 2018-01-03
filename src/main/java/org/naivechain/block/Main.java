@@ -26,7 +26,7 @@ public class Main {
                 HTTPService httpService = new HTTPService(mainHost, blockService, userService, p2pService);
                 httpService.initialHTTPServer(httpPort);
             } catch (Exception e) {
-                System.out.println("Startup error:" + e.getMessage());
+                e.printStackTrace();
             }
         } else {
             System.out.println("Usage: java -jar naivechain.jar 3030 4001");

@@ -27,15 +27,14 @@ public class BlockService {
     private Block getFirstBlock() {
         int index = 0;
         long timestamp = 1514936633890L;
-        Transaction transaction = new Transaction("NULL", mainHost + ":0", 16);
-        List<Transaction> blockTransactions = new ArrayList<>();
-        blockTransactions.add(transaction);
+        List<String> blockTransactions = new ArrayList<>();
+        blockTransactions.add(new Transaction(new User(), new User(mainHost, 0), 16).toString());
         String previousHash = "0";
         String hash = calculateHash(index, timestamp, blockTransactions.toString(), previousHash);
         return new Block(index, timestamp, blockTransactions, hash, previousHash);
     }
 
-    public Block generateNextBlock(List<Transaction> blockTransactions) {
+    public Block generateNextBlock(List<String> blockTransactions) {
         Block previousBlock = getLatestBlock();
         int nextIndex = previousBlock.getIndex() + 1;
         long nextTimestamp = System.currentTimeMillis();

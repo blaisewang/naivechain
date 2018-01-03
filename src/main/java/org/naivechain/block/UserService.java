@@ -10,6 +10,7 @@ import java.util.List;
 public class UserService {
     private List<User> userList;
 
+
     UserService() {
         userList = new ArrayList<>();
     }
@@ -27,6 +28,7 @@ public class UserService {
         }
         return false;
     }
+
 
     public List<User> getUserList() {
         return userList;

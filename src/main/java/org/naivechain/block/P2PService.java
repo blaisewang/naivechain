@@ -74,7 +74,7 @@ public class P2PService {
                     break;
             }
         } catch (Exception e) {
-            System.out.println("Handle message error:" + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -128,7 +128,7 @@ public class P2PService {
             };
             socket.connect();
         } catch (URISyntaxException e) {
-            System.out.println("P2P connection error:" + e.getMessage());
+            e.printStackTrace();
         }
     }
 

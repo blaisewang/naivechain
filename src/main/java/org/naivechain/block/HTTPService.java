@@ -16,7 +16,9 @@ import java.net.InetSocketAddress;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by sunysen on 2017/7/6.
@@ -60,7 +62,7 @@ public class HTTPService {
             server.start();
             server.join();
         } catch (Exception e) {
-            System.out.println("Initialization of HTTP Server error:" + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -84,12 +86,51 @@ public class HTTPService {
             resp.setCharacterEncoding("UTF-8");
             User user = new User(req.getLocalPort(), Integer.parseInt(req.getParameter("miner")));
             if (userService.isValIdUser(user)) {
-                Block newBlock = blockService.generateNextBlock(transactions);
-                blockService.addBlock(newBlock);
-                p2pService.broadcast(p2pService.responseLatestMsg());
-                String string = JSON.toJSONString(newBlock, true);
-                System.out.println("Block added: " + string);
-                resp.getWriter().println(string);
+                int length = transactions.size();
+                Map<String, Integer> map = new HashMap<>();
+                List<String> blockTransactions = new ArrayList<>();
+
+                map.put(user.toString(), getBalance(user) + 16);
+                for (int i = 0; i < length; i++) {
+                    Transaction transaction = transactions.get(0);
+
+                    User payer = transaction.getPayer();
+                    User payee = transaction.getPayee();
+                    int payerBalance, payeeBalance;
+
+                    if (map.containsKey(payer.toString())) {
+                        payerBalance = map.get(payer.toString());
+                    } else {
+                        payerBalance = getBalance(payer);
+                    }
+                    if (map.containsKey(payee.toString())) {
+                        payeeBalance = map.get(payee.toString());
+                    } else {
+                        payeeBalance = getBalance(payee);
+                    }
+
+                    if (payerBalance - transaction.getAmount() > 0) {
+                        blockTransactions.add(transaction.toString());
+                        payerBalance -= transaction.getAmount();
+                        payeeBalance += transaction.getAmount();
+                        map.put(transaction.getPayer().toString(), payerBalance);
+                        map.put(transaction.getPayee().toString(), payeeBalance);
+                    }
+                    transactions.remove(0);
+                    if (blockTransactions.size() == 3) {
+                        break;
+                    }
+                }
+
+                if (blockTransactions.size() == 3) {
+                    blockTransactions.add(0, new Transaction(new User(), user, 16).toString());
+                    Block newBlock = blockService.generateNextBlock(blockTransactions);
+                    blockService.addBlock(newBlock);
+                    p2pService.broadcast(p2pService.responseLatestMsg());
+                    String string = JSON.toJSONString(newBlock, true);
+                    System.out.println("Block added: " + string);
+                    resp.getWriter().println(string);
+                }
             } else {
                 resp.getWriter().println("Illegal user");
             }
@@ -127,7 +168,9 @@ public class HTTPService {
         @Override
         protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
             resp.setCharacterEncoding("UTF-8");
-            resp.getWriter().println(JSON.toJSONString(userService.getUserList(), true));
+            for (User user : userService.getUserList()) {
+                resp.getWriter().println(user.toString() + " : " + getBalance(user));
+            }
         }
     }
 
@@ -210,7 +253,7 @@ public class HTTPService {
                 String payee = req.getParameter("payee");
                 int amount = Integer.parseInt(req.getParameter("amount"));
                 System.out.println(payer + payee + amount);
-                transactions.add(new Transaction(payer, payee, amount));
+                transactions.add(new Transaction(new User(payer), new User(payee), amount));
                 resp.getWriter().println("1");
             } else {
                 resp.getWriter().println("0");
@@ -241,5 +284,21 @@ public class HTTPService {
             }
         }
         return result.toString();
+    }
+
+    private int getBalance(User user) {
+        int balance = 0;
+        for (Block block : this.blockService.getBlockChain()) {
+            for (String transaction : block.getTransactions()) {
+                String[] parameters = transaction.split("#");
+                if (parameters[0].equals(user.toString())) {
+                    balance -= Integer.parseInt(parameters[2]);
+                }
+                if (parameters[1].equals(user.toString())) {
+                    balance += Integer.parseInt(parameters[2]);
+                }
+            }
+        }
+        return balance;
     }
 }

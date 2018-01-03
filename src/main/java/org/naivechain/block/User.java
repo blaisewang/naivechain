@@ -14,6 +14,8 @@ public class User {
 
 
     User() {
+        this.node = -1;
+        this.address = -1;
     }
 
     User(int node, int address) {

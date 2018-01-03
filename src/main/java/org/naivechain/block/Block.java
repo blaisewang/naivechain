@@ -13,7 +13,7 @@ public class Block {
     @JSONField(ordinal = 2)
     private long timestamp;
     @JSONField(ordinal = 3)
-    private List<Transaction> transactions;
+    private List<String> transactions;
     @JSONField(ordinal = 4)
     private String hash;
     @JSONField(ordinal = 5)
@@ -23,7 +23,7 @@ public class Block {
     Block() {
     }
 
-    Block(int index, long timestamp, List<Transaction> transactions, String hash, String previousHash) {
+    Block(int index, long timestamp, List<String> transactions, String hash, String previousHash) {
         this.index = index;
         this.timestamp = timestamp;
         this.transactions = transactions;
@@ -48,11 +48,11 @@ public class Block {
         this.timestamp = timestamp;
     }
 
-    public List<Transaction> getTransactions() {
+    public List<String> getTransactions() {
         return transactions;
     }
 
-    public void setTransactions(List<Transaction> transactions) {
+    public void setTransactions(List<String> transactions) {
         this.transactions = transactions;
     }
 

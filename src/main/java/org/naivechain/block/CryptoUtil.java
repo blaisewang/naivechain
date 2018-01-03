@@ -17,7 +17,7 @@ public class CryptoUtil {
             messageDigest.update(str.getBytes("UTF-8"));
             encodeStr = byte2Hex(messageDigest.digest());
         } catch (Exception e) {
-            System.out.println("GetSHA256 error" + e.getMessage());
+            e.printStackTrace();
         }
         return encodeStr;
     }

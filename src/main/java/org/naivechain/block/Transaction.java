@@ -8,26 +8,26 @@ import com.alibaba.fastjson.annotation.JSONField;
  */
 public class Transaction {
     @JSONField(ordinal = 1)
-    private String payer;
+    private User payer;
     @JSONField(ordinal = 2)
-    private String payee;
+    private User payee;
     @JSONField(ordinal = 3)
     private int amount;
 
     Transaction() {
     }
 
-    Transaction(String payer, String payee, int amount) {
+    Transaction(User payer, User payee, int amount) {
         this.payer = payer;
         this.payee = payee;
         this.amount = amount;
     }
 
-    public String getPayer() {
+    public User getPayer() {
         return payer;
     }
 
-    public String getPayee() {
+    public User getPayee() {
         return payee;
     }
 
@@ -37,6 +37,6 @@ public class Transaction {
 
     @Override
     public String toString() {
-        return "{" + payer + ", " + payee + ", " + amount + "}";
+        return payer.toString() + "#" + payee.toString() + "#" + amount;
     }
 }
