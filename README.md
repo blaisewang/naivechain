@@ -13,19 +13,19 @@ java -jar naivechain.jar 8081 7002 ws://localhost:7001
 
 ### HTTP API
 
-- query blocks
-
-  ```
-  curl http://localhost:8080/blocks
-  ```
-
 - mine block
 
   ```
   curl http://localhost:8080/mineBlock?data=some_data
   ```
 
-- add node
+- query blocks
+
+  ```
+  curl http://localhost:8080/blocks
+  ```
+
+- add peer
 
   ```
   curl http://localhost:8080/addPeer?node=ws://localhost:7001
