@@ -14,8 +14,8 @@ public class User {
 
 
     User() {
-        this.node = -1;
-        this.address = -1;
+        this.node = 0;
+        this.address = 0;
     }
 
     User(int node, int address) {
@@ -24,7 +24,7 @@ public class User {
     }
 
     User(String user) {
-        String[] strings = user.split(":");
+        String[] strings = user.split(".");
         this.node = Integer.parseInt(strings[0]);
         this.address = Integer.parseInt(strings[1]);
     }
@@ -51,6 +51,6 @@ public class User {
 
     @Override
     public String toString() {
-        return node + ":" + address;
+        return node + "." + address;
     }
 }

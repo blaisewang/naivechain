@@ -1,14 +1,9 @@
 package org.naivechain.block;
 
-import com.alibaba.fastjson.JSON;
-
-import java.util.List;
 
 /**
  * Created by sunysen on 2017/7/5.
  */
-
-
 public class Main {
     private final static int MAIN_HOST = 3030;
 
