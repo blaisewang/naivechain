@@ -1,5 +1,5 @@
 # naivechain
-Naivechain - a blockchain implementation in 200 lines of code.
+Naivechain - a blockchain implementation in ~~200~~ 1000 lines of code.
 
 ### Quick start
 ```
