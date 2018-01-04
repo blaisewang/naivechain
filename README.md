@@ -49,10 +49,10 @@ java -jar naivechain.jar 3031 4002 ws://localhost:4001
   curl http://localhost:3030/users
   ```
   
-- transfer
+- add Transaction
 
   ```
-  curl -d "user=0&payee=3031:0&amount=2" http://localhost:3030/transfer
+  curl -d "payer=0&payee=3031:0&amount=2" http://localhost:3030/addTransaction
   ```
 
 - query transaction
