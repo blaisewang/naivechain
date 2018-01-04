@@ -24,22 +24,18 @@ import java.util.Map;
  * Created by sunysen on 2017/7/6.
  */
 public class HTTPService {
-    private int mainHost;
     private BlockService blockService;
     private UserService userService;
     private P2PService p2pService;
-    private List<Transaction> transactions;
 
 
     HTTPService() {
     }
 
-    HTTPService(int mainHost, BlockService blockService, UserService userService, P2PService p2pService) {
-        this.mainHost = mainHost;
+    HTTPService(BlockService blockService, UserService userService, P2PService p2pService) {
         this.blockService = blockService;
         this.userService = userService;
         this.p2pService = p2pService;
-        transactions = new ArrayList<>();
     }
 
     public void initialHTTPServer(int port) {
@@ -55,7 +51,6 @@ public class HTTPService {
             context.addServlet(new ServletHolder(new AddPeerServlet()), "/addPeer");
             context.addServlet(new ServletHolder(new UsersServlet()), "/users");
             context.addServlet(new ServletHolder(new AddUserServlet()), "/addUser");
-            context.addServlet(new ServletHolder(new TransferServlet()), "/transfer");
             context.addServlet(new ServletHolder(new TransactionServlet()), "/transaction");
             context.addServlet(new ServletHolder(new QueryPayeeServlet()), "/queryPayee");
             context.addServlet(new ServletHolder(new AddTransactionServlet()), "/addTransaction");
@@ -86,16 +81,15 @@ public class HTTPService {
             resp.setCharacterEncoding("UTF-8");
             User user = new User(req.getLocalPort(), Integer.parseInt(req.getParameter("miner")));
             if (userService.isValIdUser(user)) {
-                int length = transactions.size();
+                int length = blockService.getTransactions().size();
                 Map<String, Integer> map = new HashMap<>();
                 List<String> blockTransactions = new ArrayList<>();
 
-                map.put(user.toString(), getBalance(user) + 16);
-                for (int i = 0; i < length; i++) {
-                    Transaction transaction = transactions.get(0);
+                for (int i = 1; i < length; i++) {
+                    Transaction transaction = blockService.getTransactions().get(1);
 
-                    User payer = transaction.getPayer();
-                    User payee = transaction.getPayee();
+                    User payer = new User(transaction.getPayer());
+                    User payee = new User(transaction.getPayee());
                     int payerBalance, payeeBalance;
 
                     if (map.containsKey(payer.toString())) {
@@ -113,23 +107,27 @@ public class HTTPService {
                         blockTransactions.add(transaction.toString());
                         payerBalance -= transaction.getAmount();
                         payeeBalance += transaction.getAmount();
-                        map.put(transaction.getPayer().toString(), payerBalance);
-                        map.put(transaction.getPayee().toString(), payeeBalance);
+                        map.put(transaction.getPayer(), payerBalance);
+                        map.put(transaction.getPayee(), payeeBalance);
                     }
-                    transactions.remove(0);
+                    blockService.removeTransaction(1);
                     if (blockTransactions.size() == 3) {
                         break;
                     }
                 }
 
                 if (blockTransactions.size() == 3) {
-                    blockTransactions.add(0, new Transaction(new User(), user, 16).toString());
+                    resp.getWriter().println("The following transactions have been authorized:");
+                    resp.getWriter().println(blockTransactions.toString());
+                    blockTransactions.add(0, new Transaction(0, new User(), user, 16).toString());
                     Block newBlock = blockService.generateNextBlock(blockTransactions);
                     blockService.addBlock(newBlock);
-                    p2pService.broadcast(p2pService.responseLatestMsg());
+                    p2pService.broadcast(p2pService.responseLatestBlockchainMsg());
                     String string = JSON.toJSONString(newBlock, true);
                     System.out.println("Block added: " + string);
                     resp.getWriter().println(string);
+                } else {
+                    resp.getWriter().println("Not enough valid transactions for mining new block");
                 }
             } else {
                 resp.getWriter().println("Illegal user");
@@ -186,11 +184,19 @@ public class HTTPService {
             resp.setCharacterEncoding("UTF-8");
             int node = req.getLocalPort();
             userService.registerUser(node);
-            resp.getWriter().println("Registered a new user for " + node);
+            resp.getWriter().println("Registered a new user for node " + node);
         }
     }
 
-    private class TransferServlet extends HttpServlet {
+    private class TransactionServlet extends HttpServlet {
+        @Override
+        protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+            resp.setCharacterEncoding("UTF-8");
+            resp.getWriter().println(JSON.toJSONString(blockService.getTransactions(), true));
+        }
+    }
+
+    private class AddTransactionServlet extends HttpServlet {
         @Override
         protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
             this.doPost(req, resp);
@@ -199,34 +205,22 @@ public class HTTPService {
         @Override
         protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
             resp.setCharacterEncoding("UTF-8");
-            int address = Integer.parseInt(req.getParameter("user"));
-            User payer = new User(req.getLocalPort(), address);
+            User payer = new User(req.getLocalPort(), Integer.parseInt(req.getParameter("payer")));
             if (userService.isValIdUser(payer)) {
                 User payee = new User(req.getParameter("payee"));
                 int amount = Integer.parseInt(req.getParameter("amount"));
-                String result = sendGet("http://localhost:" + payee.getNode() + "/queryPayee", "address=" + payee.getAddress());
-                if (result.equals("1")) {
-                    result = sendGet("http://localhost:" + mainHost + "/addTransaction", "payer=" + payer.toString() + "&payee=" + payee.toString() + "&amount=" + amount);
-                    if (result.equals("1")) {
-                        resp.getWriter().println("Waiting for authorization");
-                    } else {
-                        resp.getWriter().println("Main host error");
-                    }
+
+                String query = sendGet("http://localhost:" + payee.getNode() + "/queryPayee", "address=" + payee.getAddress());
+                if (query.equals("1")) {
+                    Transaction transaction = new Transaction(blockService.getTransactionSize(), payer, payee, amount);
+                    blockService.addTransaction(transaction);
+                    p2pService.broadcast(p2pService.responseLatestTransactionMsg());
+                    resp.getWriter().println("Waiting for authorization: " + transaction.toString());
                 } else {
                     resp.getWriter().println("Illegal payee");
                 }
             } else {
                 resp.getWriter().println("Illegal payer");
-            }
-        }
-    }
-
-    private class TransactionServlet extends HttpServlet {
-        @Override
-        protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-            if (req.getLocalPort() == mainHost) {
-                resp.setCharacterEncoding("UTF-8");
-                resp.getWriter().println(JSON.toJSONString(transactions, true));
             }
         }
     }
@@ -237,23 +231,6 @@ public class HTTPService {
             resp.setCharacterEncoding("UTF-8");
             User payee = new User(req.getLocalPort(), Integer.parseInt(req.getParameter("address")));
             if (userService.isValIdUser(payee)) {
-                resp.getWriter().println("1");
-            } else {
-                resp.getWriter().println("0");
-            }
-        }
-    }
-
-    private class AddTransactionServlet extends HttpServlet {
-        @Override
-        protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-            if (req.getLocalPort() == mainHost) {
-                resp.setCharacterEncoding("UTF-8");
-                String payer = req.getParameter("payer");
-                String payee = req.getParameter("payee");
-                int amount = Integer.parseInt(req.getParameter("amount"));
-                System.out.println(payer + payee + amount);
-                transactions.add(new Transaction(new User(payer), new User(payee), amount));
                 resp.getWriter().println("1");
             } else {
                 resp.getWriter().println("0");
@@ -290,7 +267,7 @@ public class HTTPService {
         int balance = 0;
         for (Block block : this.blockService.getBlockChain()) {
             for (String transaction : block.getTransactions()) {
-                String[] parameters = transaction.split("#");
+                String[] parameters = transaction.split(", ");
                 if (parameters[0].equals(user.toString())) {
                     balance -= Integer.parseInt(parameters[2]);
                 }

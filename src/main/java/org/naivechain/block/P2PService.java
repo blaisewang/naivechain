@@ -20,9 +20,12 @@ import java.util.List;
 public class P2PService {
     private List<WebSocket> sockets;
     private BlockService blockService;
-    private final static int QUERY_LATEST = 0;
-    private final static int QUERY_ALL = 1;
+    private final static int QUERY_LATEST_BLOCKCHAIN = 0;
+    private final static int QUERY_ALL_BLOCKCHAIN = 1;
     private final static int RESPONSE_BLOCKCHAIN = 2;
+    private final static int QUERY_LATEST_TRANSACTION = 3;
+    private final static int QUERY_ALL_TRANSACTION = 4;
+    private final static int RESPONSE_TRANSACTION = 5;
 
     P2PService(BlockService blockService) {
         this.blockService = blockService;
@@ -32,7 +35,8 @@ public class P2PService {
     public void initP2PServer(int port) {
         final WebSocketServer socket = new WebSocketServer(new InetSocketAddress(port)) {
             public void onOpen(WebSocket webSocket, ClientHandshake clientHandshake) {
-                write(webSocket, queryChainLengthMsg());
+                write(webSocket, queryBlockchainLengthMsg());
+                write(webSocket, queryTransactionLengthMsg());
                 sockets.add(webSocket);
             }
 
@@ -63,14 +67,23 @@ public class P2PService {
             Message message = JSON.parseObject(string, Message.class);
             System.out.println("Received message" + JSON.toJSONString(message, true));
             switch (message.getType()) {
-                case QUERY_LATEST:
-                    write(webSocket, responseLatestMsg());
+                case QUERY_LATEST_BLOCKCHAIN:
+                    write(webSocket, responseLatestBlockchainMsg());
                     break;
-                case QUERY_ALL:
-                    write(webSocket, responseChainMsg());
+                case QUERY_ALL_BLOCKCHAIN:
+                    write(webSocket, responseBlockchainMsg());
                     break;
                 case RESPONSE_BLOCKCHAIN:
-                    handleBlockChainResponse(message.getData());
+                    handleBlockchainResponse(message.getData());
+                    break;
+                case QUERY_LATEST_TRANSACTION:
+                    write(webSocket, responseLatestTransactionMsg());
+                    break;
+                case QUERY_ALL_TRANSACTION:
+                    write(webSocket, responseTransactionMsg());
+                    break;
+                case RESPONSE_TRANSACTION:
+                    handleTransactionResponse(message.getData());
                     break;
             }
         } catch (Exception e) {
@@ -78,7 +91,7 @@ public class P2PService {
         }
     }
 
-    private void handleBlockChainResponse(String message) {
+    private void handleBlockchainResponse(String message) {
         List<Block> receivedBlocks = JSON.parseArray(message, Block.class);
         receivedBlocks.sort(Comparator.comparingInt(Block::getIndex));
 
@@ -88,10 +101,10 @@ public class P2PService {
             if (latestBlock.getHash().equals(latestBlockReceived.getPreviousHash())) {
                 System.out.println("We can append the received block to our chain");
                 blockService.addBlock(latestBlockReceived);
-                broadcast(responseLatestMsg());
+                broadcast(responseLatestBlockchainMsg());
             } else if (receivedBlocks.size() == 1) {
                 System.out.println("We have to query the chain from our peer");
-                broadcast(queryAllMsg());
+                broadcast(queryAllBlockchainMsg());
             } else {
                 blockService.replaceChain(receivedBlocks);
             }
@@ -100,12 +113,32 @@ public class P2PService {
         }
     }
 
+    private void handleTransactionResponse(String message) {
+        List<Transaction> receivedTransactions = JSON.parseArray(message, Transaction.class);
+        receivedTransactions.sort(Comparator.comparingLong(Transaction::getIndex));
+
+        Transaction latestTransactionReceived = receivedTransactions.get(receivedTransactions.size() - 1);
+        Transaction latestTransaction = blockService.getLatestTransaction();
+        if (latestTransactionReceived.getIndex() > latestTransaction.getIndex()) {
+            if (latestTransaction.getIndex() == latestTransactionReceived.getIndex() - 1) {
+                blockService.addTransaction(latestTransactionReceived);
+                broadcast(responseLatestTransactionMsg());
+            } else if (receivedTransactions.size() == 1) {
+                broadcast(queryAllTransactionMsg());
+            } else {
+                blockService.replaceTransactions(receivedTransactions);
+            }
+        }
+
+    }
+
     public void connectToPeer(String peer) {
         try {
             final WebSocketClient socket = new WebSocketClient(new URI(peer)) {
                 @Override
                 public void onOpen(ServerHandshake serverHandshake) {
-                    write(this, queryChainLengthMsg());
+                    write(this, queryBlockchainLengthMsg());
+                    write(this, queryTransactionLengthMsg());
                     sockets.add(this);
                 }
 
@@ -142,21 +175,38 @@ public class P2PService {
         }
     }
 
-    private String queryAllMsg() {
-        return JSON.toJSONString(new Message(QUERY_ALL), true);
+    private String queryAllBlockchainMsg() {
+        return JSON.toJSONString(new Message(QUERY_ALL_BLOCKCHAIN));
     }
 
-    private String queryChainLengthMsg() {
-        return JSON.toJSONString(new Message(QUERY_LATEST), true);
+    private String queryBlockchainLengthMsg() {
+        return JSON.toJSONString(new Message(QUERY_LATEST_BLOCKCHAIN));
     }
 
-    private String responseChainMsg() {
-        return JSON.toJSONString(new Message(RESPONSE_BLOCKCHAIN, JSON.toJSONString(blockService.getBlockChain(), true)));
+    private String responseBlockchainMsg() {
+        return JSON.toJSONString(new Message(RESPONSE_BLOCKCHAIN, JSON.toJSONString(blockService.getBlockChain())));
     }
 
-    public String responseLatestMsg() {
+    public String responseLatestBlockchainMsg() {
         Block[] blocks = {blockService.getLatestBlock()};
-        return JSON.toJSONString(new Message(RESPONSE_BLOCKCHAIN, JSON.toJSONString(blocks, true)));
+        return JSON.toJSONString(new Message(RESPONSE_BLOCKCHAIN, JSON.toJSONString(blocks)));
+    }
+
+    private String queryAllTransactionMsg() {
+        return JSON.toJSONString(new Message(QUERY_ALL_TRANSACTION));
+    }
+
+    private String queryTransactionLengthMsg() {
+        return JSON.toJSONString(new Message(QUERY_LATEST_TRANSACTION));
+    }
+
+    private String responseTransactionMsg() {
+        return JSON.toJSONString(new Message(RESPONSE_TRANSACTION, JSON.toJSONString(blockService.getTransactions())));
+    }
+
+    public String responseLatestTransactionMsg() {
+        Transaction[] transactions = {blockService.getLatestTransaction()};
+        return JSON.toJSONString(new Message(RESPONSE_TRANSACTION, JSON.toJSONString(transactions)));
     }
 
     public List<WebSocket> getSockets() {

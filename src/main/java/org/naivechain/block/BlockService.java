@@ -9,10 +9,13 @@ import java.util.List;
 public class BlockService {
     private int mainHost;
     private List<Block> blockChain;
+    private List<Transaction> transactions;
 
     BlockService(int mainHost) {
         this.mainHost = mainHost;
         blockChain = new ArrayList<>();
+        transactions = new ArrayList<>();
+        transactions.add(new Transaction(0, new User(), new User(), 0));
         blockChain.add(getFirstBlock());
     }
 
@@ -28,7 +31,7 @@ public class BlockService {
         int index = 0;
         long timestamp = 1514936633890L;
         List<String> blockTransactions = new ArrayList<>();
-        blockTransactions.add(new Transaction(new User(), new User(mainHost, 0), 16).toString());
+        blockTransactions.add(new Transaction(0, new User(), new User(mainHost, 0), 16).toString());
         String previousHash = "0";
         String hash = calculateHash(index, timestamp, blockTransactions.toString(), previousHash);
         return new Block(index, timestamp, blockTransactions, hash, previousHash);
@@ -89,8 +92,33 @@ public class BlockService {
         return true;
     }
 
-
     public List<Block> getBlockChain() {
         return blockChain;
+    }
+
+    public int getTransactionSize() {
+        return transactions.size();
+    }
+
+    public Transaction getLatestTransaction() {
+        return transactions.get(transactions.size() - 1);
+    }
+
+    public void addTransaction(Transaction transaction) {
+        transactions.add(transaction);
+    }
+
+    public void replaceTransactions(List<Transaction> newTransactions) {
+        if (newTransactions.size() > transactions.size()) {
+            transactions = newTransactions;
+        }
+    }
+
+    public void removeTransaction(int index) {
+        transactions.remove(index);
+    }
+
+    public List<Transaction> getTransactions() {
+        return transactions;
     }
 }
