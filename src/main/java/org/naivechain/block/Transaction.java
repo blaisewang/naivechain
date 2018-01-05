@@ -60,6 +60,6 @@ public class Transaction {
 
     @Override
     public String toString() {
-        return payer + ", " + payee + ", " + amount;
+        return "{" + payer + ", " + payee + ", " + amount + "}";
     }
 }

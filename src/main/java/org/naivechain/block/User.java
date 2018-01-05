@@ -12,7 +12,6 @@ public class User {
     @JSONField(ordinal = 2)
     private int address;
 
-
     User() {
         this.node = 0;
         this.address = 0;
@@ -24,7 +23,7 @@ public class User {
     }
 
     User(String user) {
-        String[] strings = user.split(".");
+        String[] strings = user.split("\\.");
         this.node = Integer.parseInt(strings[0]);
         this.address = Integer.parseInt(strings[1]);
     }

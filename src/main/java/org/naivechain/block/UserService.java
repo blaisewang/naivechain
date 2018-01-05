@@ -10,7 +10,6 @@ import java.util.List;
 public class UserService {
     private List<User> userList;
 
-
     UserService() {
         userList = new ArrayList<>();
     }
@@ -18,7 +17,6 @@ public class UserService {
     public void registerUser(int node) {
         userList.add(new User(node, userList.size()));
     }
-
 
     public boolean isValIdUser(User user) {
         for (User aUser : userList) {
@@ -28,7 +26,6 @@ public class UserService {
         }
         return false;
     }
-
 
     public List<User> getUserList() {
         return userList;

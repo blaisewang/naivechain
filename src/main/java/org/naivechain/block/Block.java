@@ -19,7 +19,6 @@ public class Block {
     @JSONField(ordinal = 5)
     private String previousHash;
 
-
     Block() {
     }
 
