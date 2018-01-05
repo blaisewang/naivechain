@@ -82,16 +82,16 @@ public class HTTPService {
             resp.setCharacterEncoding("UTF-8");
             User user = new User(req.getLocalPort(), Integer.parseInt(req.getParameter("miner")));
             if (userService.isValIdUser(user)) {
-                int length = blockService.getTransactions().size();
+                List<Integer> indexes = new ArrayList<>();
                 Map<String, Integer> map = new HashMap<>();
                 List<String> blockTransactions = new ArrayList<>();
-                List<Integer> indexes = new ArrayList<>();
+                int length = blockService.getTransactionSize();
 
                 for (int i = 1; i < length; i++) {
                     Transaction transaction = blockService.getTransactions().get(i);
+                    User payer = new User(transaction.getPayer());
 
-                    if (!transaction.isIgnore()) {
-                        User payer = new User(transaction.getPayer());
+                    if (!transaction.isIgnore() || !user.toString().equals(payer.toString())) {
                         User payee = new User(transaction.getPayee());
                         int payerBalance, payeeBalance;
 
@@ -121,7 +121,6 @@ public class HTTPService {
                 for (Integer index : indexes) {
                     blockList.remove(index.intValue());
                 }
-
 
                 if (blockTransactions.size() == 3) {
                     boolean broadcast = Boolean.parseBoolean(req.getParameter("broadcast"));
