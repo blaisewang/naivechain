@@ -148,7 +148,6 @@ public class HTTPService {
             resp.setCharacterEncoding("UTF-8");
             User user = new User(req.getLocalPort(), Integer.parseInt(req.getParameter("miner")));
 
-            System.out.println(blockList.toString());
             for (int i = 0; i < blockList.size(); i++) {
                 Block block = blockList.get(i);
                 if (block.getTransactions().get(0).split(", ")[1].equals(user.toString())) {
@@ -159,7 +158,6 @@ public class HTTPService {
             for (int i = 0; i < indexes.size(); i++) {
                 blockList.remove(i);
             }
-            System.out.println(blockList.toString());
         }
     }
 
