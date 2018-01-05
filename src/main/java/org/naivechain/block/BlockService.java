@@ -72,13 +72,12 @@ public class BlockService {
 
     public void replaceChain(List<Block> newBlocks) {
         if (isValidBlocks(newBlocks) && newBlocks.size() > blockChain.size()) {
-            int index = 0;
-            for (; index < blockChain.size(); index++) {
-                if (blockChain.get(index) != newBlocks.get(index)) {
+            for (int i = 0; i < blockChain.size(); i++) {
+                if (blockChain.get(i) != newBlocks.get(i)) {
+                    blockchainSnapshots.add(blockChain.subList(i, blockChain.size() - 1));
                     break;
                 }
             }
-            blockchainSnapshots.add(blockChain.subList(index, blockChain.size() - 1));
             blockChain = newBlocks;
         } else {
             System.out.println("Received an invalid blockchain");
