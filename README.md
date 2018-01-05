@@ -58,7 +58,7 @@ java -jar naivechain.jar 3031 4002 ws://localhost:4001
 - add Transaction
 
   ```
-  curl -d "payer=0&payee=3031.0&amount=2" http://localhost:3030/addTransaction
+  curl -d "payer=0&payee=3031.0&amount=2&ignore=false" http://localhost:3030/addTransaction
   ```
 
 - query transactions

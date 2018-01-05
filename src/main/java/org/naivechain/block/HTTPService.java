@@ -85,40 +85,47 @@ public class HTTPService {
                 int length = blockService.getTransactions().size();
                 Map<String, Integer> map = new HashMap<>();
                 List<String> blockTransactions = new ArrayList<>();
+                List<Integer> indexes = new ArrayList<>();
 
                 for (int i = 1; i < length; i++) {
-                    Transaction transaction = blockService.getTransactions().get(1);
+                    Transaction transaction = blockService.getTransactions().get(i);
 
-                    User payer = new User(transaction.getPayer());
-                    User payee = new User(transaction.getPayee());
-                    int payerBalance, payeeBalance;
+                    if (!transaction.isIgnore()) {
+                        User payer = new User(transaction.getPayer());
+                        User payee = new User(transaction.getPayee());
+                        int payerBalance, payeeBalance;
 
-                    if (map.containsKey(payer.toString())) {
-                        payerBalance = map.get(payer.toString());
-                    } else {
-                        payerBalance = getBalance(payer);
+                        if (map.containsKey(payer.toString())) {
+                            payerBalance = map.get(payer.toString());
+                        } else {
+                            payerBalance = getBalance(payer);
+                        }
+                        if (map.containsKey(payee.toString())) {
+                            payeeBalance = map.get(payee.toString());
+                        } else {
+                            payeeBalance = getBalance(payee);
+                        }
+                        if (payerBalance - transaction.getAmount() > 0) {
+                            blockTransactions.add(transaction.toString());
+                            payerBalance -= transaction.getAmount();
+                            payeeBalance += transaction.getAmount();
+                            map.put(transaction.getPayer(), payerBalance);
+                            map.put(transaction.getPayee(), payeeBalance);
+                            indexes.add(0, i);
+                        }
                     }
-                    if (map.containsKey(payee.toString())) {
-                        payeeBalance = map.get(payee.toString());
-                    } else {
-                        payeeBalance = getBalance(payee);
-                    }
-                    if (payerBalance - transaction.getAmount() > 0) {
-                        blockTransactions.add(transaction.toString());
-                        payerBalance -= transaction.getAmount();
-                        payeeBalance += transaction.getAmount();
-                        map.put(transaction.getPayer(), payerBalance);
-                        map.put(transaction.getPayee(), payeeBalance);
-                    }
-                    blockService.removeTransaction(1);
                     if (blockTransactions.size() == 3) {
                         break;
                     }
                 }
+                for (Integer index : indexes) {
+                    blockList.remove(index.intValue());
+                }
+
 
                 if (blockTransactions.size() == 3) {
                     boolean broadcast = Boolean.parseBoolean(req.getParameter("broadcast"));
-                    blockTransactions.add(0, new Transaction(0, new User(), user, 16).toString());
+                    blockTransactions.add(0, new Transaction(0, new User(), user, 16, false).toString());
                     Block newBlock = blockService.generateNextBlock(blockTransactions);
 
                     if (broadcast) {
@@ -155,8 +162,8 @@ public class HTTPService {
                     indexes.add(0, i);
                 }
             }
-            for (int i = 0; i < indexes.size(); i++) {
-                blockList.remove(i);
+            for (Integer index : indexes) {
+                blockList.remove(index.intValue());
             }
         }
     }
@@ -237,7 +244,11 @@ public class HTTPService {
 
                 String query = sendGet("http://localhost:" + payee.getNode() + "/queryPayee", "address=" + payee.getAddress());
                 if (query.equals("1")) {
-                    Transaction transaction = new Transaction(blockService.getTransactionSize(), payer, payee, amount);
+                    boolean isIgnore = false;
+                    if (req.getParameter("ignore").equals("true")) {
+                        isIgnore = true;
+                    }
+                    Transaction transaction = new Transaction(blockService.getTransactionSize(), payer, payee, amount, isIgnore);
                     blockService.addTransaction(transaction);
                     p2pService.broadcast(p2pService.responseLatestTransactionMsg());
                     resp.getWriter().println("Waiting for authorization: " + transaction.toString());

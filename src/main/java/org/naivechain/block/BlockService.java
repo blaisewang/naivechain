@@ -15,7 +15,7 @@ public class BlockService {
         this.mainHost = mainHost;
         blockChain = new ArrayList<>();
         transactions = new ArrayList<>();
-        transactions.add(new Transaction(0, new User(), new User(), 0));
+        transactions.add(new Transaction(0, new User(), new User(), 0, false));
         blockChain.add(getFirstBlock());
     }
 
@@ -31,7 +31,7 @@ public class BlockService {
         int index = 0;
         long timestamp = 1514936633890L;
         List<String> blockTransactions = new ArrayList<>();
-        blockTransactions.add(new Transaction(0, new User(), new User(mainHost, 0), 16).toString());
+        blockTransactions.add(new Transaction(0, new User(), new User(mainHost, 0), 16, false).toString());
         String previousHash = "0";
         String hash = calculateHash(index, timestamp, blockTransactions.toString(), previousHash);
         return new Block(index, timestamp, blockTransactions, hash, previousHash);
