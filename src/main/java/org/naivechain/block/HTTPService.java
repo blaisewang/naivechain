@@ -53,9 +53,10 @@ public class HTTPService {
             context.addServlet(new ServletHolder(new AddPeerServlet()), "/addPeer");
             context.addServlet(new ServletHolder(new UsersServlet()), "/users");
             context.addServlet(new ServletHolder(new AddUserServlet()), "/addUser");
+            context.addServlet(new ServletHolder(new PayeeServlet()), "/payee");
             context.addServlet(new ServletHolder(new TransactionsServlet()), "/transactions");
-            context.addServlet(new ServletHolder(new QueryPayeeServlet()), "/queryPayee");
             context.addServlet(new ServletHolder(new AddTransactionServlet()), "/addTransaction");
+            context.addServlet(new ServletHolder(new SnapshotServlet()), "/snapshot");
             server.start();
             server.join();
         } catch (Exception e) {
@@ -119,7 +120,7 @@ public class HTTPService {
                     }
                 }
                 for (Integer index : indexes) {
-                    blockList.remove(index.intValue());
+                    blockService.removeTransaction(index);
                 }
 
                 if (blockTransactions.size() == 3) {
@@ -241,7 +242,7 @@ public class HTTPService {
                 User payee = new User(req.getParameter("payee"));
                 int amount = Integer.parseInt(req.getParameter("amount"));
 
-                String query = sendGet("http://localhost:" + payee.getNode() + "/queryPayee", "address=" + payee.getAddress());
+                String query = sendGet("http://localhost:" + payee.getNode() + "/payee", "address=" + payee.getAddress());
                 if (query.equals("1")) {
                     boolean isIgnore = false;
                     if (req.getParameter("ignore").equals("true")) {
@@ -260,7 +261,7 @@ public class HTTPService {
         }
     }
 
-    private class QueryPayeeServlet extends HttpServlet {
+    private class PayeeServlet extends HttpServlet {
         @Override
         protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
             resp.setCharacterEncoding("UTF-8");
@@ -270,6 +271,14 @@ public class HTTPService {
             } else {
                 resp.getWriter().println("0");
             }
+        }
+    }
+
+    private class SnapshotServlet extends HttpServlet {
+        @Override
+        protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+            resp.setCharacterEncoding("UTF-8");
+            resp.getWriter().println(JSON.toJSONString(blockService.getBlockchainSnapshots(), true));
         }
     }
 

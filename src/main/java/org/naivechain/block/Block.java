@@ -70,4 +70,8 @@ public class Block {
     public void setPreviousHash(String previousHash) {
         this.previousHash = previousHash;
     }
+
+    public boolean equals(Block block) {
+        return index == block.getIndex() && timestamp == block.getTimestamp() && transactions.equals(block.getTransactions()) && hash.equals(block.getHash()) && previousHash.equals(block.getPreviousHash());
+    }
 }
