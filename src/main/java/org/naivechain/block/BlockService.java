@@ -10,13 +10,11 @@ public class BlockService {
     private int mainHost;
     private List<Block> blockChain;
     private List<Transaction> transactions;
-    private List<List<Block>> blockchainSnapshots;
 
     BlockService(int mainHost) {
         this.mainHost = mainHost;
         blockChain = new ArrayList<>();
         transactions = new ArrayList<>();
-        blockchainSnapshots = new ArrayList<>();
         transactions.add(new Transaction(0, new User(), new User(), 0, false));
         blockChain.add(getFirstBlock());
     }
@@ -72,12 +70,6 @@ public class BlockService {
 
     public void replaceChain(List<Block> newBlocks) {
         if (isValidBlocks(newBlocks) && newBlocks.size() > blockChain.size()) {
-            for (int i = 0; i < blockChain.size(); i++) {
-                if (blockChain.get(i) != newBlocks.get(i)) {
-                    blockchainSnapshots.add(blockChain.subList(i, blockChain.size() - 1));
-                    break;
-                }
-            }
             blockChain = newBlocks;
         } else {
             System.out.println("Received an invalid blockchain");
@@ -102,10 +94,6 @@ public class BlockService {
 
     public List<Block> getBlockChain() {
         return blockChain;
-    }
-
-    public List<List<Block>> getBlockchainSnapshots() {
-        return blockchainSnapshots;
     }
 
     public int getTransactionSize() {

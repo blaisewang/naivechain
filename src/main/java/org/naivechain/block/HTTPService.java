@@ -56,7 +56,6 @@ public class HTTPService {
             context.addServlet(new ServletHolder(new PayeeServlet()), "/payee");
             context.addServlet(new ServletHolder(new TransactionsServlet()), "/transactions");
             context.addServlet(new ServletHolder(new AddTransactionServlet()), "/addTransaction");
-            context.addServlet(new ServletHolder(new SnapshotServlet()), "/snapshot");
             server.start();
             server.join();
         } catch (Exception e) {
@@ -271,14 +270,6 @@ public class HTTPService {
             } else {
                 resp.getWriter().println("0");
             }
-        }
-    }
-
-    private class SnapshotServlet extends HttpServlet {
-        @Override
-        protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-            resp.setCharacterEncoding("UTF-8");
-            resp.getWriter().println(JSON.toJSONString(blockService.getBlockchainSnapshots(), true));
         }
     }
 
